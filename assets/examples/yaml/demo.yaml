@@ -1,0 +1,20 @@
+things:
+  - kind: Bridge
+    thingTypeUID: mqtt:broker
+    id: lab
+    label: Lab broker
+    configuration:
+      host: 192.168.10.20
+      secure: false
+    things:
+      - kind: Thing
+        thingTypeUID: mqtt:topic
+        id: weather
+        label: Weather station
+        channels:
+          - id: temperature
+            type: number
+          - id: humidity
+            type: number
+          - id: online
+            type: switch

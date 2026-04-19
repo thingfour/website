@@ -1,0 +1,264 @@
+{{ define "main" }}
+<div class="container py-4 py-lg-5">
+
+  <!-- Hero Section -->
+  <section class="home-hero">
+    <div class="row gx-5 gy-4 align-items-center">
+      <div class="col-12 col-xl-8">
+        <div class="text-center text-xl-start">
+          <div class="intro-badge d-inline-flex align-items-center rounded-3 px-3 py-2">
+            <span class="intro-badge-dot position-relative d-inline-flex justify-content-center align-items-center me-2">
+              <span class="intro-badge-ping position-absolute"></span>
+              <span class="intro-badge-core position-relative"></span>
+            </span>
+            Dzień dobry!
+            {{ partial "asset-icon.html" (dict "name" "arrow-right" "class" "ms-2" "attrs" `width="16" height="16" aria-hidden="true"`) }}
+          </div>
+
+          <h1 class="display-4 fw-semibold lh-sm my-4 text-body-emphasis hero-title">
+            Dealing with technology challenges.
+          </h1>
+
+          <div class="fs-5 text-body-secondary hero-copy">
+            <p>I’m Łukasz Dywicki: software engineer, open-source developer, and consultant focused on practical systems work.</p>
+            <p class="mt-4">{{ .Site.Params.description }}</p>
+          </div>
+
+          <div class="my-4">
+            <a href="#getintouch" class="btn btn-primary btn-lg hero-cta">
+              Get in touch
+            </a>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-center justify-content-xl-start gap-3 hero-social">
+            {{- with .Site.Params.social.github }}
+            <a class="hero-social-link" href="https://github.com/{{ . }}" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              {{ partial "asset-icon.html" (dict "name" "github" "attrs" `width="20" height="20" aria-hidden="true"`) }}
+            </a>
+            {{- end }}
+            {{- with .Site.Params.social.linkedin }}
+            <a class="hero-social-link" href="https://www.linkedin.com/in/{{ . }}/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              {{ partial "asset-icon.html" (dict "name" "linkedin" "attrs" `width="20" height="20" aria-hidden="true"`) }}
+            </a>
+            {{- end }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="hero-image-wrap ms-xl-auto">
+          <figure class="hero-image-frame mb-0">
+            <img src="/wp-content/uploads/2025/04/rusinowa_polana.jpg"
+                 alt="Rusinowa Polana"
+                 class="img-fluid hero-image"
+                 width="640"
+                 height="640">
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Latest Posts -->
+  <section class="section-block">
+    <div class="section-heading">
+      <h2 class="h2 mb-0">Latest Posts</h2>
+      <a href="/posts/" class="section-link">
+        All posts →
+      </a>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      {{- range first 3 (where (where .Site.RegularPages "Section" "posts") "Draft" false) }}
+      <div class="col">
+        {{ partial "article-item.html" . }}
+      </div>
+      {{- end }}
+    </div>
+  </section>
+
+  <!-- Latest Talks -->
+  {{- $talks := sort site.Data.talks.talks "date" "desc" }}
+  {{- if $talks }}
+  <section class="section-block">
+    <div class="section-heading">
+      <h2 class="h2 mb-0">Latest Talks</h2>
+      <a href="/talks/" class="section-link">
+        All talks →
+      </a>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      {{- range first 3 $talks }}
+      {{- $talkLink := or .video_url .slides_url .event_url }}
+      <div class="col">
+      <article class="card content-card h-100">
+        {{- if .cover.image }}
+        <div class="content-card-cover">
+          <img src="{{ .cover.image | absURL }}"
+               alt="{{ .cover.alt | default .title }}"
+               class="content-card-image"
+               loading="lazy"
+               decoding="async">
+        </div>
+        {{- else }}
+        <div class="content-card-cover content-card-cover-placeholder">
+          {{ partial "asset-icon.html" (dict "name" "talk" "class" "content-card-placeholder-icon" "attrs" `aria-hidden="true"`) }}
+        </div>
+        {{- end }}
+
+        <div class="card-body d-flex flex-column gap-2">
+          <div class="content-meta">
+            {{- with .date }}
+            <time datetime="{{ . }}">{{ time.AsTime . | time.Format "2 Jan 2006" }}</time>
+            {{- end }}
+            {{- with .event }}
+            <span class="content-meta-separator">·</span>
+            <span>{{ . }}</span>
+            {{- end }}
+          </div>
+
+          <h3 class="h5 mb-0">
+            {{- if $talkLink }}
+            <a href="{{ if and .slides_url (eq $talkLink .slides_url) }}{{ replace $talkLink " " "%20" }}{{ else }}{{ $talkLink }}{{ end }}"
+               target="_blank" rel="noopener noreferrer"
+               class="content-link">
+              <span>{{ .title }}</span>
+              {{ partial "asset-icon.html" (dict "name" "external-link" "class" "content-link-icon" "attrs" `aria-hidden="true"`) }}
+            </a>
+            {{- else }}
+            <span>{{ .title }}</span>
+            {{- end }}
+          </h3>
+
+          {{- with .summary }}
+          <p class="card-text text-body-secondary flex-grow-1">{{ . }}</p>
+          {{- end }}
+        </div>
+      </article>
+      </div>
+      {{- end }}
+    </div>
+  </section>
+  {{- end }}
+
+  <!-- Projects -->
+  {{- $projects := site.Data.projects.projects }}
+  {{- if $projects }}
+  <section class="section-block">
+    <div class="section-heading">
+      <h2 class="h2 mb-0">Projects</h2>
+      <a href="/projects/" class="section-link">
+        All projects →
+      </a>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+      {{- range first 3 $projects }}
+      {{- $link := or .url .repo }}
+      <div class="col">
+      <article class="card content-card h-100">
+        {{- if .cover.image }}
+        <div class="content-card-cover">
+          <img src="{{ .cover.image | absURL }}"
+               alt="{{ .cover.alt | default .title }}"
+               class="content-card-image"
+               loading="lazy"
+               decoding="async">
+        </div>
+        {{- else }}
+        <div class="content-card-cover content-card-cover-placeholder">
+          {{ partial "asset-icon.html" (dict "name" "project" "class" "content-card-placeholder-icon" "attrs" `aria-hidden="true"`) }}
+        </div>
+        {{- end }}
+
+        <div class="card-body d-flex flex-column gap-2">
+          <h3 class="h5 mb-0">
+            {{- if $link }}
+            <a href="{{ $link }}" target="_blank" rel="noopener noreferrer"
+               class="content-link">
+              <span>{{ .title }}</span>
+              {{ partial "asset-icon.html" (dict "name" "external-link" "class" "content-link-icon" "attrs" `aria-hidden="true"`) }}
+            </a>
+            {{- else }}
+            <span>{{ .title }}</span>
+            {{- end }}
+          </h3>
+
+          {{- with .summary }}
+          <p class="card-text text-body-secondary flex-grow-1">{{ . }}</p>
+          {{- end }}
+        </div>
+      </article>
+      </div>
+      {{- end }}
+    </div>
+  </section>
+  {{- end }}
+
+  <!-- Contact Form -->
+  <section id="getintouch" class="section-block">
+    <h2 class="h2 mb-2">Get in touch</h2>
+    <p class="text-body-secondary mb-4">Questions, ideas, or just want to say hello — feel free to reach out.</p>
+    <form id="contact-form" class="contact-form">
+      <div class="mb-3">
+        <label for="contact-name" class="form-label">Name</label>
+        <input type="text" id="contact-name" name="fi-sender-fullName" required autocomplete="name"
+               class="form-control">
+      </div>
+      <div class="mb-3">
+        <label for="contact-email" class="form-label">Email</label>
+        <input type="email" id="contact-email" name="fi-sender-email" required autocomplete="email"
+               class="form-control">
+      </div>
+      <div class="mb-3">
+        <label for="contact-message" class="form-label">Message</label>
+        <textarea id="contact-message" name="fi-text-message" rows="4" required
+                  class="form-control"></textarea>
+      </div>
+      <button type="submit"
+              class="btn btn-primary d-inline-flex align-items-center gap-2">
+        Send message
+        {{ partial "asset-icon.html" (dict "name" "send" "class" "w-4 h-4" "attrs" `aria-hidden="true"`) }}
+      </button>
+      <p id="contact-success" class="d-none text-success fw-medium small mt-3 mb-0">
+        Thanks! Your message has been sent.
+      </p>
+      <p id="contact-error" class="d-none text-danger small mt-3 mb-0">
+        Something went wrong. Please try again or email directly.
+      </p>
+    </form>
+  </section>
+
+</div>
+
+<script>
+const form = document.getElementById('contact-form');
+form.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const btn = form.querySelector('button[type="submit"]');
+  const success = document.getElementById('contact-success');
+  const error = document.getElementById('contact-error');
+
+  btn.disabled = true;
+  success.classList.add('d-none');
+  error.classList.add('d-none');
+
+  try {
+    const res = await fetch('https://forminit.com/f/425wbgrpl7m', {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { Accept: 'application/json' }
+    });
+    if (res.ok) {
+      form.reset();
+      success.classList.remove('d-none');
+    } else {
+      error.classList.remove('d-none');
+    }
+  } catch (err) {
+    error.classList.remove('d-none');
+    console.log(err);
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+{{ end }}

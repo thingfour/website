@@ -1,0 +1,15 @@
+{{- $name := .name | default . -}}
+{{- with resources.Get (printf "icons/%s.svg" $name) -}}
+  {{- $svg := .Content -}}
+  {{- $attrs := slice -}}
+  {{- with $.class -}}
+    {{- $attrs = $attrs | append (printf `class="%s"` .) -}}
+  {{- end -}}
+  {{- with $.attrs -}}
+    {{- $attrs = $attrs | append . -}}
+  {{- end -}}
+  {{- if gt (len $attrs) 0 -}}
+    {{- $svg = replace $svg "<svg" (printf "<svg %s" (delimit $attrs " ")) 1 -}}
+  {{- end -}}
+  {{- $svg | safeHTML -}}
+{{- end -}}

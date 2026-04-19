@@ -1,0 +1,39 @@
+<aside class="col-12 col-lg-4">
+  <div class="sidebar-stack">
+
+    {{- $tags := .Site.Taxonomies.tag }}
+    {{- if $tags }}
+    <section class="sidebar-panel">
+      <h3 class="sidebar-title">Tags</h3>
+      <div class="tag-cloud tag-cloud-compact">
+        {{- range $tags.ByCount }}
+        <a href="{{ .Page.Permalink }}"
+           class="badge-filter">
+          {{ .Page.Title }}
+          <span class="badge-filter-count">{{ .Count }}</span>
+        </a>
+        {{- end }}
+      </div>
+    </section>
+    {{- end }}
+
+    {{- $cats := .Site.Taxonomies.category }}
+    {{- if $cats }}
+    <section class="sidebar-panel">
+      <h3 class="sidebar-title">Categories</h3>
+      <ul class="list-unstyled mb-0">
+        {{- range $cats.ByCount }}
+        <li class="sidebar-list-item">
+          <a href="{{ .Page.Permalink }}"
+             class="sidebar-list-link">
+            <span>{{ .Page.Title }}</span>
+            <span class="sidebar-count">{{ .Count }}</span>
+          </a>
+        </li>
+        {{- end }}
+      </ul>
+    </section>
+    {{- end }}
+
+  </div>
+</aside>

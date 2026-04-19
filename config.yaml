@@ -1,0 +1,94 @@
+baseURL: https://thing4.org/
+DefaultContentLanguage: "en"
+languageCode: "en"
+title: "Thing4"
+theme: ["hugo-cloak-email"]
+
+enableRobotsTXT: true
+enableGitInfo: true
+defaultContentLanguageInSubdir: false
+
+outputs:
+  home:
+    - html
+    - rss
+  page:
+    - html
+  rss:
+    - rss
+  section:
+    - html
+  taxonomy:
+    - html
+  term:
+    - html
+
+taxonomies:
+  category: category
+
+disableKinds:
+  - taxonomy
+  - term
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+
+menu:
+  main:
+    - pageRef: articles
+      weight: 10
+    - name: About
+      url: /about/motto/
+      weight: 40
+    # - name: Community forum
+    #   url: 'https://community.thing4.org/'
+
+      weight: 100
+
+  footer:
+    - name: "Home"
+      identifier: home
+      url: "/"
+      weight: 1
+    - name: "Motto"
+      identifier: motto
+      url: "/about/motto"
+      weight: 2
+    - name: "Trademarks"
+      identifier: trademarks
+      url: "/about/trademarks"
+      weight: 3
+    - name: "Contact"
+      identifier: contact
+      pageRef: Contact
+      weight: 4
+    - name: "Back to top"
+      identifier: back-to-top
+      url: "#"
+      weight: 7
+
+Copyright: |
+  Ⓒ Thing4.org - Thing4 community
+
+# <strong>This website is administered by<a href="//connectorio.com">Connectorio Sp. z o.o.</a></strong>  
+# ul. Nieszawska 4b  
+# 03-382 Warszawa, Polska  
+# <b>NIP:</b> PL5242877034  
+# <b>KRS:</b> 0000758107  
+# ConnectorIO is trademark owned and licensed by Code-House, Łukasz Dywicki.  
+# The ® sign in logo or next to name that the mentioned brand or logo is a registered trademark belonging to its respective owner.
+
+params:
+  github:
+    show_edit_link: true
+    repo_url: https://github.com/thingfour/thingfour-website
+  social_links:
+    github: https://github.com/thingfour
+
+permalinks:
+  posts: "/posts/:year:month/:title/"
+  article: ":section-:title"
+  products: "/:sections[1:]-:title/"
+  section: ":section-:title"

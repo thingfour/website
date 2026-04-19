@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+  <thing-type id="weather-station">
+    <label>Weather Station</label>
+    <description>Compact example descriptor used for generated reference pages.</description>
+    <category>Weather</category>
+    <channels>
+      <channel id="temperature" typeId="system:number" />
+      <channel id="humidity" typeId="system:number" />
+      <channel id="online" typeId="system:switch" />
+    </channels>
+  </thing-type>
+</thing:thing-descriptions>

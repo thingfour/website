@@ -1,0 +1,67 @@
+{{ define "main" }}
+<div class="container py-4 py-lg-5">
+
+  <header class="mb-4">
+    <h1 class="display-6 fw-semibold text-capitalize mb-0">
+      {{ if .IsHome }}All Posts{{ else }}{{ .Title }}{{ end }}
+    </h1>
+    {{- with .Description }}
+    <p class="mt-2 text-body-secondary">{{ . }}</p>
+    {{- else }}
+    <p class="mt-2 text-body-secondary">Posts tagged with <span class="fw-semibold">{{ .Title }}</span>.</p>
+    {{- end }}
+  </header>
+
+  <div class="row g-5">
+    <div class="col-12 col-lg-8">
+      {{- $published := where .Pages "Draft" false }}
+      {{- $paginator := .Paginate $published }}
+      {{- if $published }}
+      <div class="post-list">
+        {{- range $paginator.Pages }}
+        <article class="post-list-item">
+          <div class="content-meta mb-2">
+            <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
+            <span class="content-meta-separator">·</span>
+            <span>{{ math.Round (div (float (countwords .Content)) 200.0) }} min read</span>
+            {{- range .Params.category }}
+            <span class="content-meta-separator">·</span>
+            <a href="/category/{{ . | urlize }}/" class="section-link text-capitalize">{{ . }}</a>
+            {{- end }}
+          </div>
+          <h2 class="h4 mb-0">
+            <a href="{{ .Permalink }}" class="content-link">{{ .Title }}</a>
+          </h2>
+          {{- with .Params.summary }}
+          <p class="mt-2 text-body-secondary">{{ . }}</p>
+          {{- end }}
+          {{- if .Params.tag }}
+          <div class="mt-3 d-flex flex-wrap gap-2">
+            {{- range first 5 .Params.tag }}
+            <a href="/tag/{{ . | urlize }}/">{{ partial "badge.html" . }}</a>
+            {{- end }}
+          </div>
+          {{- end }}
+        </article>
+        {{- end }}
+      </div>
+      {{- if gt $paginator.TotalPages 1 }}
+      <nav class="mt-4 d-flex align-items-center justify-content-center gap-2" aria-label="Pagination">
+        {{- if $paginator.HasPrev }}
+        <a href="{{ $paginator.Prev.URL }}" class="btn btn-outline-secondary btn-sm">← Previous</a>
+        {{- end }}
+        <span class="small text-body-secondary">{{ $paginator.PageNumber }} / {{ $paginator.TotalPages }}</span>
+        {{- if $paginator.HasNext }}
+        <a href="{{ $paginator.Next.URL }}" class="btn btn-outline-secondary btn-sm">Next →</a>
+        {{- end }}
+      </nav>
+      {{- end }}
+      {{- else }}
+      <p class="text-body-secondary">No posts yet.</p>
+      {{- end }}
+    </div>
+    {{- partial "sidebar.html" . }}
+  </div>
+
+</div>
+{{ end }}

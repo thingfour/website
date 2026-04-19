@@ -1,0 +1,41 @@
+<footer class="site-footer">
+  {{- $logo := resources.Get "images/thing4.png" -}}
+  <div class="container">
+    <div class="site-footer-inner text-center">
+    <a href="/" class="site-footer-brand">
+      {{- with $logo }}
+      <img src="{{ .RelPermalink }}" alt="{{ $.Site.Title }}" class="site-footer-logo" width="160" height="43">
+      {{- else }}
+      {{ .Site.Title }}
+      {{- end }}
+    </a>
+
+    <nav class="site-footer-nav" aria-label="Footer navigation">
+      {{ range .Site.Menus.main }}
+      <a href="{{ .URL }}" class="site-footer-link">
+        {{ .Name }}
+      </a>
+      {{ end }}
+    </nav>
+
+    <div class="site-footer-social">
+      {{- with .Site.Params.social.github }}
+      <a href="https://github.com/{{ . }}" target="_blank" rel="noopener noreferrer"
+         class="site-footer-social-link" aria-label="GitHub">
+        {{ partial "asset-icon.html" (dict "name" "github" "attrs" `width="20" height="20" aria-hidden="true"`) }}
+      </a>
+      {{- end }}
+      {{- with .Site.Params.social.linkedin }}
+      <a href="https://linkedin.com/in/{{ . }}" target="_blank" rel="noopener noreferrer"
+         class="site-footer-social-link" aria-label="LinkedIn">
+        {{ partial "asset-icon.html" (dict "name" "linkedin" "attrs" `width="20" height="20" aria-hidden="true"`) }}
+      </a>
+      {{- end }}
+    </div>
+
+    <p class="site-footer-copy">
+      &copy; {{ now.Year }} {{ .Site.Title }}
+    </p>
+    </div>
+  </div>
+</footer>

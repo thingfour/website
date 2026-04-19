@@ -1,0 +1,30 @@
+{{ define "main" }}
+<div class="container py-4 py-lg-5">
+
+  <header class="mb-4">
+    <h1 class="display-6 fw-semibold mb-0">{{ .Title }}</h1>
+    <p class="mt-2 text-body-secondary">Browse all tags and jump into filtered post listings.</p>
+  </header>
+
+  <div class="row g-5">
+    <div class="col-12 col-lg-8">
+      <section class="tag-cloud-panel">
+        <div class="tag-cloud-header">
+          <h2 class="tag-cloud-title mb-0">All tags</h2>
+          <span class="tag-cloud-meta">{{ len .Data.Terms }} tags</span>
+        </div>
+        <div class="tag-cloud">
+          {{- range .Data.Terms.ByCount }}
+          <a href="{{ .Page.Permalink }}" class="badge-filter">
+            <span class="text-capitalize">{{ .Page.Title }}</span>
+            <span class="badge-filter-count">{{ .Count }}</span>
+          </a>
+          {{- end }}
+        </div>
+      </section>
+    </div>
+    {{- partial "sidebar.html" . }}
+  </div>
+
+</div>
+{{ end }}

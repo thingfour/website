@@ -1,0 +1,86 @@
+{{- $id := .id -}}
+{{- $files := .files -}}
+{{- if $files }}
+<section class="source-browser" id="{{ $id }}">
+  <aside class="source-browser-sidebar">
+    <div class="source-browser-sidebar-head">
+      <h2 class="source-browser-title">{{ .title | default "Files" }}</h2>
+      <input id="{{ $id }}-filter"
+             type="search"
+             class="form-control form-control-sm source-browser-filter"
+             placeholder="Filter files"
+             aria-label="Filter files">
+    </div>
+
+    <nav class="source-browser-tree" aria-label="Example files">
+      {{- $scratch := newScratch }}
+      {{- $scratch.Set "dir" "" }}
+      {{- range $files }}
+        {{- $dir := strings.TrimPrefix "examples/" (path.Dir .Name) }}
+        {{- $path := strings.TrimPrefix "examples/" .Name }}
+        {{- $anchor := printf "%s-%s" $id (anchorize $path) }}
+        {{- if ne $dir ($scratch.Get "dir") }}
+          {{- if ne ($scratch.Get "dir") "" }}</div>{{- end }}
+          <div class="source-browser-group">
+            <h3 class="source-browser-group-title">{{ if eq $dir "." }}root{{ else }}{{ $dir }}{{ end }}</h3>
+          {{- $scratch.Set "dir" $dir }}
+        {{- end }}
+        <a href="#{{ $anchor }}"
+           class="source-browser-link"
+           data-path="{{ $path | lower }}">
+          <span class="source-browser-link-name">{{ path.Base .Name }}</span>
+          <span class="source-browser-link-ext">{{ path.Ext .Name }}</span>
+        </a>
+      {{- end }}
+      </div>
+    </nav>
+  </aside>
+
+  <div class="source-browser-content">
+    {{- range $files }}
+      {{- $path := strings.TrimPrefix "examples/" .Name }}
+      {{- $anchor := printf "%s-%s" $id (anchorize $path) }}
+      {{- $ext := lower (path.Ext .Name) }}
+      {{- $lang := "text" }}
+      {{- if eq $ext ".xml" }}{{ $lang = "xml" }}{{ end }}
+      {{- if or (eq $ext ".yaml") (eq $ext ".yml") }}{{ $lang = "yaml" }}{{ end }}
+      {{- if eq $ext ".things" }}{{ $lang = "hcl" }}{{ end }}
+      {{- $highlighted := transform.Highlight .Content $lang "lineNos=table,lineNumbersInTable=true,noClasses=true,style=github-dark" }}
+    <article id="{{ $anchor }}" class="source-panel">
+      <header class="source-panel-head">
+        <div>
+          <p class="source-panel-path mb-1">{{ $path }}</p>
+          <h2 class="source-panel-name mb-0">{{ path.Base .Name }}</h2>
+        </div>
+        <span class="badge-chip">{{ path.Ext .Name }}</span>
+      </header>
+
+      <div class="source-code-wrap">
+        {{ $highlighted }}
+      </div>
+    </article>
+    {{- end }}
+  </div>
+</section>
+
+<script>
+(function () {
+  var root = document.getElementById('{{ $id }}');
+  var input = document.getElementById('{{ $id }}-filter');
+  if (!root || !input) {
+    return;
+  }
+
+  var links = Array.prototype.slice.call(root.querySelectorAll('.source-browser-link'));
+  input.addEventListener('input', function () {
+    var query = input.value.trim().toLowerCase();
+    links.forEach(function (link) {
+      var path = link.getAttribute('data-path') || '';
+      link.style.display = !query || path.indexOf(query) !== -1 ? '' : 'none';
+    });
+  });
+})();
+</script>
+{{- else }}
+<p class="text-body-secondary">No example files were found.</p>
+{{- end }}

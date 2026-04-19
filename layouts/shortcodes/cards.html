@@ -1,0 +1,4 @@
+{{- $count := .Get "count" | default "1" -}}
+<div class="row g-4 row-cols-1 row-cols-md-{{ $count }}">
+    {{ .Inner }}
+</div>

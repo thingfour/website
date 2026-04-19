@@ -1,0 +1,17 @@
+{{ define "main" }}
+{{- $files := sort (.Resources.Match "**") "Name" -}}
+<div class="container py-4 py-lg-5">
+
+  <header class="mb-4">
+    <h1 class="display-6 fw-semibold mb-0">{{ .Title }}</h1>
+    {{- with .Params.summary }}
+    <p class="mt-2 text-body-secondary">{{ . }}</p>
+    {{- end }}
+  </header>
+
+{{ .Content }}
+
+  {{- partial "source-browser.html" (dict "id" "examples-browser" "files" $files "title" "Files") }}
+
+</div>
+{{ end }}

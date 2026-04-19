@@ -1,0 +1,77 @@
+{{ define "main" }}
+<div class="container py-4 py-lg-5">
+  <div class="search-page">
+
+  <header class="mb-4">
+    <h1 class="display-6 fw-semibold mb-0">Search</h1>
+    <p class="mt-2 text-body-secondary">Search posts by title, summary, tags, or categories.</p>
+  </header>
+
+  <div class="search-input-wrap">
+    <input type="text" id="search-input"
+           placeholder="{{ .Params.placeholder | default "Search posts..." }}"
+           class="form-control search-input"
+           autocomplete="off">
+    {{ partial "asset-icon.html" (dict "name" "search" "class" "search-input-icon" "attrs" `aria-hidden="true"`) }}
+  </div>
+
+  <div id="search-results" class="search-results mt-4"></div>
+  <p id="search-empty" class="d-none mt-4 text-body-secondary">No results found.</p>
+
+  </div>
+</div>
+
+<script src="/js/fuse.basic.min.js"></script>
+<script>
+(async function () {
+  const input = document.getElementById('search-input');
+  const results = document.getElementById('search-results');
+  const empty = document.getElementById('search-empty');
+
+  let fuse;
+  try {
+    const res = await fetch('/index.json');
+    const data = await res.json();
+    fuse = new Fuse(data, {
+      keys: ['title', 'summary', 'tags', 'categories'],
+      threshold: 0.35,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+    });
+  } catch (e) {
+    console.error('Search index failed to load', e);
+    return;
+  }
+
+  function render(query) {
+    results.innerHTML = '';
+    empty.classList.add('d-none');
+
+    if (!query || query.length < 2) return;
+
+    const hits = fuse.search(query, { limit: 15 });
+
+    if (hits.length === 0) {
+      empty.classList.remove('d-none');
+      return;
+    }
+
+    hits.forEach(function ({ item }) {
+      const el = document.createElement('a');
+      el.href = item.permalink;
+      el.className = 'search-result-card';
+      el.innerHTML = '<h3 class="search-result-title">' + item.title + '</h3>' +
+        (item.summary ? '<p class="search-result-summary">' + item.summary + '</p>' : '');
+      results.appendChild(el);
+    });
+  }
+
+  input.addEventListener('input', function () { render(this.value.trim()); });
+
+  // Support ?q= in URL
+  const q = new URLSearchParams(window.location.search).get('q');
+  if (q) { input.value = q; render(q); }
+  input.focus();
+})();
+</script>
+{{ end }}

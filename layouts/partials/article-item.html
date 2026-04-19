@@ -1,0 +1,53 @@
+{{ $article := . }}
+{{ $link := $article.Permalink }}
+{{ $external := false }}
+{{ if eq $article.Section "projects" }}
+  {{ with or $article.Params.externalUrl $article.Params.repo }}
+    {{ $link = . }}
+    {{ $external = true }}
+  {{ end }}
+{{ end }}
+<article class="card content-card h-100">
+  {{- if $article.Params.cover.image }}
+  <div class="content-card-cover">
+    <img src="{{ $article.Params.cover.image | absURL }}"
+         alt="{{ $article.Params.cover.alt | default $article.Title }}"
+         class="content-card-image"
+         loading="lazy"
+         decoding="async">
+  </div>
+  {{- else }}
+  <div class="content-card-cover content-card-cover-placeholder">
+    {{ partial "asset-icon.html" (dict "name" "project" "class" "content-card-placeholder-icon" "attrs" `aria-hidden="true"`) }}
+  </div>
+  {{- end }}
+
+  <div class="card-body d-flex flex-column gap-2">
+    {{- if ne $article.Section "projects" }}
+    <time class="content-meta" datetime="{{ $article.Date.Format "2006-01-02" }}">
+      {{ $article.Date.Format "2 Jan 2006" }}
+    </time>
+    {{- end }}
+
+    <h3 class="h5 mb-0">
+      <a href="{{ $link }}"
+         {{ if $external }}target="_blank" rel="noopener noreferrer"{{ end }}
+         class="content-link">
+        <span>{{ $article.Title }}</span>
+        {{ partial "asset-icon.html" (dict "name" "arrow-right" "class" "content-link-icon" "attrs" `aria-hidden="true"`) }}
+      </a>
+    </h3>
+
+    {{- with $article.Params.summary }}
+    <p class="card-text text-body-secondary flex-grow-1">{{ . }}</p>
+    {{- end }}
+
+    {{- if $article.Params.tag }}
+    <div class="d-flex flex-wrap gap-2 mt-1">
+      {{- range first 3 $article.Params.tag }}
+      {{ partial "badge.html" . }}
+      {{- end }}
+    </div>
+    {{- end }}
+  </div>
+</article>

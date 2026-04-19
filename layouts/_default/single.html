@@ -1,0 +1,98 @@
+{{ define "main" }}
+<article class="container py-4 py-lg-5 single-post">
+
+  <!-- Breadcrumb -->
+  <nav class="single-breadcrumb mb-4" aria-label="Breadcrumb">
+    <a href="/" class="section-link">Home</a>
+    {{- range .Params.category }}
+    <span class="content-meta-separator">/</span>
+    <a href="/category/{{ . | urlize }}/" class="section-link text-capitalize">{{ . }}</a>
+    {{- end }}
+  </nav>
+
+  <!-- Title -->
+  <h1 class="display-5 fw-semibold single-post-title">
+    {{ .Title }}
+  </h1>
+
+  <!-- Meta -->
+  <div class="content-meta mt-3">
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
+    <span class="content-meta-separator">·</span>
+    <span>{{ math.Round (div (float (countwords .Content)) 200.0) }} min read</span>
+    {{- with .Params.author }}
+    <span class="content-meta-separator">·</span>
+    <span>{{ . }}</span>
+    {{- end }}
+  </div>
+
+  <!-- Tags -->
+  {{- if .Params.tag }}
+  <div class="mt-3 d-flex flex-wrap gap-2">
+    {{- range .Params.tag }}
+    <a href="/tag/{{ . | urlize }}/">{{ partial "badge.html" . }}</a>
+    {{- end }}
+  </div>
+  {{- end }}
+
+  <!-- Cover image -->
+  {{- with .Params.cover.image }}
+  <div class="single-cover mt-4">
+    <img src="{{ . | absURL }}"
+         alt="{{ $.Params.cover.alt | default $.Title }}"
+         class="img-fluid single-cover-image"
+         loading="lazy"
+         decoding="async">
+  </div>
+  {{- end }}
+
+  <!-- Content -->
+  <div class="single-post-content mt-5">
+    {{ .Content }}
+  </div>
+
+  <!-- Bottom tags -->
+  {{- if .Params.tag }}
+  <div class="single-post-section mt-5">
+    <p class="single-section-label">Tagged:</p>
+    <div class="d-flex flex-wrap gap-2">
+      {{- range .Params.tag }}
+      <a href="/tag/{{ . | urlize }}/">{{ partial "badge.html" . }}</a>
+      {{- end }}
+    </div>
+  </div>
+  {{- end }}
+
+  <!-- Prev / Next -->
+  {{- if or .PrevInSection .NextInSection }}
+  <nav class="single-post-section mt-5" aria-label="Post navigation">
+    <div class="row g-3">
+    {{- with .NextInSection }}
+    <div class="col-12 col-md-6">
+      <a href="{{ .Permalink }}" class="single-nav-card">
+        <span class="single-nav-label">← Previous</span>
+        <p class="single-nav-title">{{ .Title }}</p>
+      </a>
+    </div>
+    {{- end }}
+    {{- with .PrevInSection }}
+    <div class="col-12 col-md-6 {{ if not $.NextInSection }}ms-md-auto{{ end }}">
+      <a href="{{ .Permalink }}" class="single-nav-card single-nav-card-next">
+        <span class="single-nav-label">Next →</span>
+        <p class="single-nav-title">{{ .Title }}</p>
+      </a>
+    </div>
+    {{- end }}
+    </div>
+  </nav>
+  {{- end }}
+
+  <!-- Disqus comments -->
+  {{- if and .Site.Params.disqusShortname .Site.Params.comments }}
+  <div class="single-post-section mt-5">
+    {{ template "_internal/disqus.html" . }}
+  </div>
+  {{- end }}
+
+</article>
+{{ end }}
