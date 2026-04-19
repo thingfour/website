@@ -1,6 +1,10 @@
 {{ $article := . }}
 {{ $link := $article.Permalink }}
 {{ $external := false }}
+{{ $published := $article.Date }}
+{{ if eq ($published.Format "2006-01-02") "0001-01-01" }}
+  {{ $published = $article.Lastmod }}
+{{ end }}
 {{ if eq $article.Section "projects" }}
   {{ with or $article.Params.externalUrl $article.Params.repo }}
     {{ $link = . }}
@@ -24,8 +28,8 @@
 
   <div class="card-body d-flex flex-column gap-2">
     {{- if ne $article.Section "projects" }}
-    <time class="content-meta" datetime="{{ $article.Date.Format "2006-01-02" }}">
-      {{ $article.Date.Format "2 Jan 2006" }}
+    <time class="content-meta" datetime="{{ $published.Format "2006-01-02" }}">
+      {{ $published.Format "2 Jan 2006" }}
     </time>
     {{- end }}
 

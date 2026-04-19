@@ -35,6 +35,13 @@ markup:
     renderer:
       unsafe: true
 
+frontmatter:
+  lastmod:
+    - :git
+    - lastmod
+    - date
+    - publishDate
+
 menu:
   main:
     - pageRef: articles
@@ -44,8 +51,7 @@ menu:
       weight: 40
     # - name: Community forum
     #   url: 'https://community.thing4.org/'
-
-      weight: 100
+    #  weight: 100
 
   footer:
     - name: "Home"

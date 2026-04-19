@@ -1,4 +1,10 @@
 {{ define "main" }}
+{{- $published := .Date -}}
+{{- if eq ($published.Format "2006-01-02") "0001-01-01" -}}
+  {{- $published = .Lastmod -}}
+{{- end -}}
+{{- $updated := .Lastmod -}}
+{{- $showUpdated := ne ($updated.Format "2006-01-02") ($published.Format "2006-01-02") -}}
 <article class="container py-4 py-lg-5 single-post">
 
   <!-- Breadcrumb -->
@@ -17,7 +23,13 @@
 
   <!-- Meta -->
   <div class="content-meta mt-3">
-    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
+    <span>Published:</span>
+    <time datetime="{{ $published.Format "2006-01-02" }}">{{ $published.Format "2 Jan 2006" }}</time>
+    {{- if $showUpdated }}
+    <span class="content-meta-separator">·</span>
+    <span>Updated:</span>
+    <time datetime="{{ $updated.Format "2006-01-02" }}">{{ $updated.Format "2 Jan 2006" }}</time>
+    {{- end }}
     <span class="content-meta-separator">·</span>
     <span>{{ math.Round (div (float (countwords .Content)) 200.0) }} min read</span>
     {{- with .Params.author }}
