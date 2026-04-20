@@ -1,6 +1,10 @@
 ---
+author: Łukasz Dywicki
 type: article
 title: Alternative Thing DSL Parser
+cover:
+  image: /images/articles/thing4-syntax-parser/header.png
+  alt: ANTLR4 Things file syntax parser 
 ---
 {{< intro >}}
 One of main advantages of openHAB is its flexible provider mechanism which allow to use of various sources of configurations.
@@ -46,13 +50,6 @@ The core difference between Xtend and ANLTR is its role.
 While Xtend is toolkit, ANTLR is just a tool.
 Using second one requires more effort on our end, leaving us with some hard troubles to be solved.
 
-In the actual `Things.g4` grammar, parsing starts from the `things` rule which accepts a sequence of `modelThing` and `modelBridge` elements until `EOF`.
-Top-level and nested declarations are split on purpose: `modelThing` and `modelBridge` handle full UIDs, optional labels and optional parents, while `nestedThing` and `nestedBridge` handle shorter forms used inside bridge blocks.
-Structure is then delegated to `thingDefinition` and `bridgeDefinition`, which cover optional location markers, bracketed property lists and brace-delimited bodies.
-Inside these bodies, `modelChannels` and `modelChannel` describe both declared channels and typed channel references.
-Property parsing is kept flat through `modelProperties`, `modelProperty` and `valueType`, which is enough for key-value configuration entries such as those used in example `*.things` files`.
-The lexer side is equally direct: `STRING` strips quotes, `INTEGER` and `DECIMAL` are separated for clearer numeric handling, comments are pushed to the hidden channel, and `modelItemType` accepts not only standard item types such as `Switch` or `Number`, but also `Number:<dimension>` and plain `ID` values for dynamic item types resolved at runtime.
-
 However, by looking at standard thing definition used by openHAB DSL, we can see it as rather basic.
 Compared to rule DSL, its actually trivial, as it do no pose to be a fully fledged programming language.
 
@@ -65,28 +62,66 @@ The Thing DSL allows us to define:
 5. Channel configuration (again key value paris within square brackets)
 6. Things within bridges
 
-The only one hard part, at first look is nesting of Things within Bridges or Bridges within Bridges.
+The only one hard part, at first look is nesting of Things within Bridges or Bridges within Bridges, due to how it impacts ID construction.
 The ANTLR grammar syntax itself is rather simple, difficulty is really distinguishing the lexer and parser rules.
 Both are evaluated at different stage of parsing process and have serious impact to how parser will behave.
 Sometimes, improperly defined lexer rule, may not ever match.
 
+### Deeper look at thing definition
+In the actual `Things` grammar, parsing starts from the `things` rule which accepts a sequence of `modelThing` and `modelBridge` elements until `EOF`.
+Top-level and nested declarations are split on purpose: `modelThing` and `modelBridge` handle full UIDs.
+They may contain `nestedThing` and `nestedBridge`, which handle shorter forms used inside bridge blocks.
+Structure is then delegated to `thingDefinition` and `bridgeDefinition`, which cover optional location markers.
+
+Below you can find few key parts of grammar, which follow above hierarchy.
+Note that there are some contants (such as L_BRACE, R_BRACE or STRING).
+These are lexer rules which uniquely identify a pattern matching criteria.
+
+```antlr
+// subset of parser rules
+things : (modelThing | modelBridge)* EOF;
+
+modelBridge : BRIDGE id=uid label=STRING? parent=modelParent? bridge=bridgeDefinition;
+bridgeDefinition : (LOCATION location=STRING)? properties=modelProperties? ( L_BRACE nestedThings modelChannels R_BRACE )?;
+
+nestedThings : THINGS? ( nestedThing | nestedBridge )*;
+modelThing : THING id=uid label=STRING? parent=modelParent? thing=thingDefinition;
+nestedThing : THING thingTypeId=uidSegment id=uidSegment label=STRING? thing=thingDefinition;
+
+thingDefinition : (LOCATION location=STRING)? properties=modelProperties? ( L_BRACE modelChannels R_BRACE )?;
+
+modelChannels: CHANNELS? modelChannel*;
+modelChannel : (channelDeclaration | channelReference) ':' id=channelId (label=STRING)? properties=modelProperties?;
+
+channelDeclaration : (channelKind=CHANNEL_KIND)? itemType=modelItemType;
+channelReference : TYPE channelType=uidSegment;
+
+modelItemType : standardItemType | dimensionalItemType | dynamicItemType;
+
+modelProperties: L_BRACKET properties=modelProperty? (',' properties=modelProperty)* R_BRACKET;
+modelProperty : key=ID '=' value=valueType (',' value=valueType)*;
+
+valueType : STRING | NUMBER | BOOLEAN;
+```
+
+Bracketed property lists contain bodies, with thing configuration options.
+Inside thing bodies we can find `modelChannels` and `modelChannel` which describe both declared channels and typed channel references.
+Property parsing which describes configuration options (both for thing and channel) is a sequence of key=value pairs.
+What is unique in this attempt is that `modelItemType`, which is part of channel declaration is not fixed to only predefined types.
+As you know openHAB supports Dimmer, Switch, Number, Contact and few other item types.
+But not more than that.
+Our parser accepts standard item types such `Switch` or `Number` (also `Number:<dimension>`), but parser permits also a plain `ID` values.
+This gives runtime a chance to conduct dynamic lookup of registered item types at runtime.
+
 ## Practical use
-The parser is used as a small component, not as a standalone demo.
-The `thing4` stack exposes `Parser` and `Writer` interfaces for DSL resources.
-This makes the parser usable in tooling and in runtime-oriented code.
+Based on full [Thing4.g4](https://github.com/thingfour/thingfour/blob/4.0.0-alpha-2/bundles/org.thing4.core.parser.thing/src/main/antlr4/org/thing4/core/parser/thing/Things.g4) ANTLR grammar we can create a complete parser.
+Since we can read files, we can also write them, cause that part is much easier.
+The `thing4` repository linked above exposes high level `Parser` and `Writer` interfaces.
+These interfaces are fairly generic, so they work with any input and output, so not only DLS, but for example YAML or XML.
 
-The main modules are:
-
-* `org.thing4.core.parser` for common `Parser` and `Writer` contracts.
-* `org.thing4.core.model.facade` for access to official openHAB parsers through the same API.
-* `org.thing4.core.parser.thing` for the lightweight parser with identifier `thing4`.
-* `org.thing4.core.parser.thing.yaml` for YAML parsing and writing with identifier `yaml`.
-
-This split keeps syntax handling separate from file watching, providers and output generation.
-
-## Typical build tasks
-The same parser can be used during a Maven build.
-The `thing4-maven-plugin` provides three relevant goals:
+### Build time validation
+Since we have a standalone parser with limited set of dependencies we can use it during build time.
+The `thing4-maven-plugin`, which is based on what is described in this article provides three goals:
 
 * `parse-descriptors` reads `OH-INF/**/*.xml` descriptor files.
 * `process-descriptors` renders descriptor data through templates.
@@ -94,12 +129,12 @@ The `thing4-maven-plugin` provides three relevant goals:
 
 This is enough for several practical tasks:
 
-* verify `docs/examples/**/*.things` files during build,
-* convert `*.things` definitions to YAML,
-* generate AsciiDoc from binding descriptors,
-* check the same input with different parser implementations.
+* verify `*.things` files during build
+* convert `*.things` definitions to other format i.e YAML
+* generate AsciiDoc from binding descriptors
+* check input with different parser implementations
 
-## Example: validate thing files
+#### Example: validate thing files
 The simplest case is syntax validation of example files:
 
 ```xml
@@ -126,7 +161,7 @@ The simplest case is syntax validation of example files:
 Here the parser reads thing definitions and checks whether they can be mapped to `org.openhab.core.thing.Thing`.
 No output writer is needed.
 
-## Example: convert thing files to YAML
+#### Example: convert thing files to YAML
 The same goal can write parsed definitions to another format:
 
 ```xml
@@ -140,7 +175,7 @@ The same goal can write parsed definitions to another format:
       </goals>
       <configuration>
         <includes>
-          <include>docs/examples/**/*.things</include>
+          <include>*.things</include>
         </includes>
         <parser>openhab</parser>
         <writer>yaml</writer>
@@ -152,9 +187,9 @@ The same goal can write parsed definitions to another format:
 ```
 
 This configuration reads `*.things` files and emits matching YAML files.
-The writer identifier becomes the output extension.
+The writer identifier becomes the output extension (in this case yaml).
 
-## Example: descriptor processing
+#### Example: descriptor processing
 The parser tooling is also useful next to binding descriptors:
 
 ```xml
@@ -175,23 +210,31 @@ The parser tooling is also useful next to binding descriptors:
 </plugin>
 ```
 
-This setup reads `OH-INF/thing/*.xml` and `OH-INF/config/*.xml`.
-It can then render generated reference files such as bridge types, thing types, channel types and configuration descriptions.
+This configuration by default read project resources from `OH-INF/thing/*.xml` and `OH-INF/config/*.xml`.
+Process descriptors goal is used to generate documentation files based on XML descriptors.
 
-## Example files
+## Minimum project example
 The examples below show the kinds of files handled by this tooling.
 They include a `*.things` source, a nested bridge example, YAML output and descriptor XML.
 
-{{< source-browser title="Example sources" glob="examples/**" >}}
+{{< source-browser title="Example sources" glob="examples/**/*" >}}
 
-## Why this matters
-The merit of the ANTLR-based parser is simple.
-It removes the Xtext and EMF dependency chain from one narrow task.
-At the same time it stays useful in regular engineering work:
+## Final remarks
+Exchange of a DSL parser is not entirely trival.
+There are few implementation aspects, which may be hidden in how parsed data is processed and arranged.
+For example a slight modification in how property list is retained in memory (hash map to linked hash map) may impact a lot of places.
+Simply because all these places were tested against earlier implementation.
 
-* build-time validation,
-* format conversion,
-* descriptor-driven documentation,
-* and reuse in provider-oriented code.
+What we gained is something which support regular engineering work:
 
-That makes the parser easier to test, easier to embed and easier to maintain.
+* build-time validation
+* format conversion
+* descriptor-driven documentation
+* reuse of code across tooling/runtime
+
+New parser is much smaller, with less abstractions.
+This makes it easier to test, easier to embed and easier to maintain.
+
+All this work allows us to remove Xtext and EMF dependencies from build.
+These two dependency groups are approximatelly 2-4 MB together, so its a significant amount.
+Obviously, these are still needed for other syntaxes, but lets keep it as a topic for another article.
