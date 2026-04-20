@@ -217,7 +217,7 @@ Process descriptors goal is used to generate documentation files based on XML de
 The examples below show the kinds of files handled by this tooling.
 They include a `*.things` source, a nested bridge example, YAML output and descriptor XML.
 
-{{< source-browser title="Example sources" glob="examples/**/*" >}}
+{{< source-browser title="Example sources" root="examples" >}}
 
 ## Final remarks
 Exchange of a DSL parser is not entirely trival.

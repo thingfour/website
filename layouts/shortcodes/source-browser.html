@@ -1,4 +1,10 @@
-{{- $glob := .Get "glob" | default "examples/**" -}}
-{{- $files := sort (.Page.Resources.Match $glob) "Name" -}}
+{{- $root := .Get "root" | default "examples" -}}
+{{- $files := slice -}}
+{{- range .Page.Resources -}}
+  {{- if or (eq .Name $root) (hasPrefix .Name (printf "%s/" $root)) -}}
+    {{- $files = $files | append . -}}
+  {{- end -}}
+{{- end -}}
+{{- $files = sort $files "Name" -}}
 {{- $id := printf "source-browser-%d" .Ordinal -}}
 {{- partial "source-browser.html" (dict "id" $id "files" $files "title" (.Get "title")) -}}
